@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shoppinglistapp/Widgets/new_item_widget.dart';
+import 'package:shoppinglistapp/Widgets/show_list_widget.dart';
 
-import '../data/dummy_items.dart';
+import '../models/grocery_item.dart';
 
 class GroceryList extends StatefulWidget {
   const GroceryList({super.key});
@@ -11,14 +12,32 @@ class GroceryList extends StatefulWidget {
 }
 
 class _GroceryListState extends State<GroceryList> {
-  void _addItem() {
-    Navigator.of(context).push(
+  final List<GroceryItem> _groceryItems = [];
+  void _addItem() async {
+    final newItem = await Navigator.of(context).push(
       MaterialPageRoute(builder: (ctx) => const NewItem()),
     );
+    if (newItem == null) {
+      return;
+    }
+    setState(() {
+      _groceryItems.add(newItem);
+    });
+  }
+  void _removeItem(GroceryItem item) {
+    setState(() {
+      _groceryItems.remove(item);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget mainContent=const Center(
+      child: Text('No item found. Start adding some!'),
+    );
+    if(_groceryItems.isNotEmpty){
+      mainContent=ShowList(groceryItems: _groceryItems,onRemove: _removeItem,);
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Groceries'),
@@ -29,20 +48,7 @@ class _GroceryListState extends State<GroceryList> {
           )
         ],
       ),
-      body: ListView.builder(
-        itemCount: groceryItems.length,
-        itemBuilder: (ctx, index) => ListTile(
-          title: Text(groceryItems[index].name),
-          leading: Container(
-            width: 24,
-            height: 24,
-            color: groceryItems[index].category.color,
-          ),
-          trailing: Text(
-            groceryItems[index].quantity.toString(),
-          ),
-        ),
-      ),
+      body: mainContent,
     );
   }
 }
